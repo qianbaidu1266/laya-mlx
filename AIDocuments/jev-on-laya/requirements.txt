@@ -1,0 +1,36 @@
+# laya-mlx 本地推理依赖（macOS / Apple Silicon）
+#
+# 依赖已装在 conda 环境 `laya`（Python 3.14.8），跑脚本直接用它的解释器：
+#   cd AIDocuments/jev-on-laya
+#   /opt/anaconda3/envs/laya/bin/python classifer.py
+#   /opt/anaconda3/envs/laya/bin/laya-snake --model ../../models/laya-multilingual-mlx
+#
+# 重装/换环境时：
+#   cd AIDocuments/jev-on-laya
+#   <python> -m pip install --no-compile --only-binary=:all: -r requirements.txt
+#
+# --no-compile 是给本机加的保护：pip 编译 .pyc 后要删临时文件，会撞上文件策略拦截
+# （Brokered host rename refused / 单轮删除超 50 个文件）。禁用编译就没有这个动作。
+# 用 Python 3.10 的 conda agent 环境时装，还要加 --ignore-requires-python
+# （仓库声明 requires-python >=3.11）；3.11+ 不需要。
+#
+# 注意：末行 -e 的相对路径按「当前目录」解析，不是按本文件所在目录，
+# 所以必须在 AIDocuments/jev-on-laya 下执行。
+#
+# numpy 按解释器版本分开写：Python 3.10 上最后一个有现成 wheel 的是 2.2.6，不锁会转源码
+# 构建并报「meson 需要 3.12」；3.11+ 不设上限。
+
+-i https://pypi.tuna.tsinghua.edu.cn/simple
+
+mlx>=0.32.2,<0.33
+numpy>=1.26,<2.3; python_version < "3.11"
+numpy>=1.26; python_version >= "3.11"
+huggingface-hub>=0.34,<2
+tokenizers>=0.21,<1
+
+# laya-snake 终端演示需要（等价于 pyproject 的 demo extra）
+rich>=15,<16
+Pillow>=12,<13
+
+# laya-mlx 本体（可编辑安装，指向仓库根）
+-e ../..
