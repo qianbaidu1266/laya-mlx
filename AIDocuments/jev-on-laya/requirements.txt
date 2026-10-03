@@ -32,5 +32,10 @@ tokenizers>=0.21,<1
 rich>=15,<16
 Pillow>=12,<13
 
+# 只有 compare_jev_vs_laya.py 需要：它要同时调本地 laya 和云端 Jev 做对照。
+# 纯本地推理不需要这两个，不装也能跑其余脚本。
+typesafe-sdk>=0.7,<1
+python-dotenv>=1.0
+
 # laya-mlx 本体（可编辑安装，指向仓库根）
 -e ../..
