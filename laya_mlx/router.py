@@ -27,6 +27,12 @@ primary routing signal.
 `typed-decisions` is never selected automatically unless you opt in with
 `auto_task_detection=True` or pass `task="typed_decisions"`: it is fine-tuned on four specific
 synthetic workflows and should not be a silent default.
+
+Mixed-script states (Chinese text carrying English words, say) go to the multilingual checkpoint
+as soon as non-Latin letters pass `MIXED_NON_LATIN_FRACTION`. `detect_script` reports only the
+script with the most letters, so without this guard a mostly-Chinese state with a couple of long
+English words is reported as Latin and handed to the checkpoint that reads Chinese as UTF-8 byte
+fragments.
 """
 
 import os
@@ -34,6 +40,12 @@ import threading
 from typing import Any, Dict, List, Optional, Union
 
 from .lang import analyse
+
+# Mixed-script guard. `detect_script` reports the script with the most letters, so a state that
+# is mostly Chinese but carries a few long English words still comes back as "latin" and would
+# otherwise go to the English checkpoint, which cannot read the Chinese half at all. Any
+# meaningful share of non-Latin letters is enough to prefer the multilingual checkpoint.
+MIXED_NON_LATIN_FRACTION = 0.05
 
 # The hub repo bundles all three checkpoints; only the requested subfolder is downloaded.
 BUNDLE_REPO = "convaiinnovations/laya"
@@ -364,6 +376,12 @@ class Router:
                     "Latin script, language not identified but %.0f%% non-English letters; "
                     "not safe for the English checkpoint" % (100 * float(det["diacritic_rate"]))
                 )
+        elif float(det["non_latin_fraction"]) >= MIXED_NON_LATIN_FRACTION:
+            key = "multilingual"
+            reason = (
+                "mixed script: %.0f%% of letters are not Latin; the English checkpoint "
+                "cannot read them" % (100 * float(det["non_latin_fraction"]))
+            )
         else:
             key = "english"
             reason = "English Latin text"

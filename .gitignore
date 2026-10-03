@@ -1,6 +1,8 @@
 .venv/
 .upstream/
 .cache/
+.idea/
+.workbuddy/
 models/
 *.safetensors
 __pycache__/
